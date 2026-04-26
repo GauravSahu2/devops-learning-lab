@@ -7,9 +7,9 @@ name: CI/CD Pipeline # The name of the GitHub Actions workflow
  
 on: # Defines the events that trigger the workflow
   push: # Triggers on a 'push' event
-    branches: [ main ] # Only triggers for the 'main' branch
+    branches: [ master ] # Only triggers for the 'master' branch
   pull_request: # Triggers on a 'pull_request' event
-    branches: [ main ] # Only triggers for pull requests targeting 'main'
+    branches: [ master ] # Only triggers for pull requests targeting 'master'
  
 jobs: # Container for all the jobs that run in the workflow
   security-and-lint: # ID for the first job: Security and Linting
