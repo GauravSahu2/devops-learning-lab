@@ -3,114 +3,66 @@
 # It performs security scans (Bandit, Gitleaks, Hadolint),
 # builds the Docker image, and scans it for vulnerabilities using Trivy.
 
-# The name of the GitHub Actions workflow
-name: CI/CD Pipeline
+name: CI/CD Pipeline # The name of the GitHub Actions workflow
  
-# Defines the events that trigger the workflow
-on:
-  # Triggers on a 'push' event
-  push:
-    # Only triggers for the 'master' branch
-    branches: [ master ]
-  # Triggers on a 'pull_request' event
-  pull_request:
-    # Only triggers for pull requests targeting 'master'
-    branches: [ master ]
+on: # Defines the events that trigger the workflow
+  push: # Triggers on a 'push' event
+    branches: [ master ] # Only triggers for the 'master' branch
+  pull_request: # Triggers on a 'pull_request' event
+    branches: [ master ] # Only triggers for pull requests targeting 'master'
  
-# Container for all the jobs that run in the workflow
-jobs:
-  # ID for the first job: Security and Linting
-  security-and-lint:
-    # The type of virtual machine to run the job on
-    runs-on: ubuntu-latest
-    # List of sequential tasks (steps) to execute
-    steps:
-      # Official action to check out the repository code
-      - uses: actions/checkout@v3
+jobs: # Container for all the jobs that run in the workflow
+  security-and-lint: # ID for the first job: Security and Linting
+    runs-on: ubuntu-latest # The type of virtual machine to run the job on
+    steps: # List of sequential tasks (steps) to execute
+      - uses: actions/checkout@v3 # Official action to check out the repository code
  
       # 1. SAST - Python Security Scan
-      # Task name for logging
-      - name: Run Bandit (Python Security)
-        # Executes multi-line shell commands
-        run: |
-          # Installs Bandit, a tool for finding common security issues in Python
-          pip install bandit
-          # Runs Bandit recursively on the 'app' directory
-          bandit -r ./app
+      - name: Run Bandit (Python Security) # Task name for logging
+        run: | # Executes multi-line shell commands
+          pip install bandit # Installs Bandit for security scanning
+          bandit -r ./app # Runs Bandit recursively on the 'app' directory
  
       # 2. Dockerfile Linting
-      # Task name for logging
-      - name: Hadolint Dockerfile check
-        # External action to lint the Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        # Input parameters for the action
-        with:
-          # Path to the Dockerfile to lint
-          dockerfile: Dockerfile
+      - name: Hadolint Dockerfile check # Task name for logging
+        uses: hadolint/hadolint-action@v3.1.0 # External action to lint the Dockerfile
+        with: # Input parameters for the action
+          dockerfile: Dockerfile # Path to the Dockerfile to lint
  
       # 3. Secret Scanning (Prevention)
-      # Task name for logging
-      - name: Gitleaks scan
-        # External action to scan for hardcoded secrets
-        uses: gitleaks/gitleaks-action@v2
-        # Environment variables for the action
-        env:
-          # Auth token to allow the action to comment on PRs
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Gitleaks scan # Task name for logging
+        uses: gitleaks/gitleaks-action@v2 # External action to scan for hardcoded secrets
+        env: # Environment variables for the action
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Auth token to allow the action to comment on PRs
  
-  # ID for the second job: Build and Vulnerability Scanning
-  build-and-scan:
-    # Ensures this job only runs if the 'security-and-lint' job succeeds
-    needs: security-and-lint
-    # The type of virtual machine to run the job on
-    runs-on: ubuntu-latest
-    # List of steps for this job
-    steps:
-      # Checks out the code
-      - uses: actions/checkout@v3
+  build-and-scan: # ID for the second job: Build and Vulnerability Scanning
+    needs: security-and-lint # Ensures this job only runs if the 'security-and-lint' job succeeds
+    runs-on: ubuntu-latest # The type of virtual machine to run the job on
+    steps: # List of steps for this job
+      - uses: actions/checkout@v3 # Checks out the code
  
       # 4. Build Docker Image
-      # Task name for logging
-      - name: Build Docker image
-        # Builds the image using the git commit SHA as a tag
-        run: docker build -t devops-lab-app:${{ github.sha }} .
+      - name: Build Docker image # Task name for logging
+        run: docker build -t devops-lab-app:${{ github.sha }} . # Builds the image using git commit SHA as tag
  
       # 5. Image Vulnerability Scanning
-      # Task name for logging
-      - name: Run Trivy vulnerability scanner
-        # External action to scan Docker images for vulnerabilities
-        uses: aquasecurity/trivy-action@master
-        # Input parameters for the action
-        with:
-          # The image to scan
-          image-ref: 'devops-lab-app:${{ github.sha }}'
-          # Output format (human-readable table)
-          format: 'table'
-          # Fail the pipeline if vulnerabilities are found (return non-zero exit code)
-          exit-code: '1'
-          # Skip vulnerabilities that don't have a fix yet
-          ignore-unfixed: true
-          # Only fail on Critical and High severity issues
-          severity: 'CRITICAL,HIGH'
+      - name: Run Trivy vulnerability scanner # Task name for logging
+        uses: aquasecurity/trivy-action@master # External action to scan images
+        with: # Input parameters for the action
+          image-ref: 'devops-lab-app:${{ github.sha }}' # The image to scan
+          format: 'table' # Output format (human-readable table)
+          exit-code: '1' # Fail the pipeline if vulnerabilities are found
+          ignore-unfixed: true # Skip vulnerabilities without a fix
+          severity: 'CRITICAL,HIGH' # Only fail on Critical and High severity issues
  
-  # ID for the third job: Simulated Deployment
-  deploy-mock:
-    # Ensures this job only runs if the 'build-and-scan' job succeeds
-    needs: build-and-scan
-    # The type of virtual machine to run the job on
-    runs-on: ubuntu-latest
-    # List of steps for this job
-    steps:
-      # Task name for logging
-      - name: Mock Deployment
-        # Executes multi-line shell commands to simulate deployment
-        run: |
-          # Status message
-          echo "Security checks passed!"
-          # Status message
-          echo "Image built and scanned!"
-          # Status message
-          echo "Deploying to Kubernetes cluster (Simulated)..."
-          # Mock command showing how deployment would happen
-          echo "kubectl apply -f k8s/"
+  deploy-mock: # ID for the third job: Simulated Deployment
+    needs: build-and-scan # Ensures this job only runs if the 'build-and-scan' job succeeds
+    runs-on: ubuntu-latest # The type of virtual machine to run the job on
+    steps: # List of steps for this job
+      - name: Mock Deployment # Task name for logging
+        run: | # Executes multi-line shell commands to simulate deployment
+          echo "Security checks passed!" # Status message
+          echo "Image built and scanned!" # Status message
+          echo "Deploying to Kubernetes cluster (Simulated)..." # Status message
+          echo "kubectl apply -f k8s/" # Mock command showing how deployment would happen
 

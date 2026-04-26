@@ -3,96 +3,50 @@
 # It ensures 2 replicas are running, sets resource limits for stability,
 # and configures liveness/readiness probes for self-healing.
 
-# Specifies the API version for the Deployment resource
-apiVersion: apps/v1
-# Defines the type of resource being created
-kind: Deployment
-# Metadata for the Deployment
-metadata:
-  # Unique name of the Deployment
-  name: flask-app
-  # Labels used to identify and organize the Deployment
-  labels:
-    # Custom label: app=flask-app
-    app: flask-app
-# Specification of the desired state for the Deployment
-spec:
-  # Number of desired pod instances to run
-  replicas: 2
-  # Defines how the Deployment finds which pods to manage
-  selector:
-    # Labels that pods must have to be managed by this Deployment
-    matchLabels:
-      # Must match the pod template label
-      app: flask-app
-  # Template for the pods that will be created
-  template:
-    # Metadata for the pods created from this template
-    metadata:
-      # Labels applied to each pod created
-      labels:
-        # Label used by the selector and service
-        app: flask-app
-    # Specification for the pod's containers and volumes
-    spec:
-      # Security: Don't automatically mount the default service account token
-      automountServiceAccountToken: false
-      # List of containers to run in the pod
-      containers:
-      - name: flask-app
-        # Use a specific version tag instead of 'latest' for predictability
-        image: devops-lab-app:1.0.0
-        # List of ports to expose from the container
-        ports:
-        # Port the container is listening on (Flask default)
-        - containerPort: 5000
-        # List of environment variables to set in the container
-        env:
-        # Environment variable name for Redis host
-        - name: REDIS_HOST
-          # Value pointing to the Redis Kubernetes Service
-          value: "redis-service"
-        # Environment variable name for Redis port
-        - name: REDIS_PORT
-          # Port number for Redis
-          value: "6379"
-        # Resource requests and limits for the container
-        resources:
-          # Maximum amount of resources the container can use
-          limits:
-            # Max CPU: 0.5 cores
-            cpu: "500m"
-            # Max Memory: 256 Megabytes
-            memory: "256Mi"
-          # Minimum amount of resources guaranteed to the container
-          requests:
-            # Requested CPU: 0.25 cores
-            cpu: "250m"
-            # Requested Memory: 128 Megabytes
-            memory: "128Mi"
-            # Requested ephemeral storage for logs/scratch space
-            ephemeral-storage: "1Gi"
-        # Probe to check if the container is still running
-        livenessProbe:
-          # Performs an HTTP GET request
-          httpGet:
-            # Path to the new health endpoint
-            path: /health
-            # Port to check
-            port: 5000
-          # Wait 10 seconds before starting probes
-          initialDelaySeconds: 10
-          # Check every 15 seconds
-          periodSeconds: 15
-        # Probe to check if the container is ready to serve traffic
-        readinessProbe:
-          # Performs an HTTP GET request
-          httpGet:
-            # Path to the new health endpoint
-            path: /health
-            # Port to check
-            port: 5000
-          # Wait 5 seconds before starting probes
-          initialDelaySeconds: 5
-          # Check every 10 seconds
-          periodSeconds: 10
+apiVersion: apps/v1 # Specifies the API version for the Deployment resource
+kind: Deployment # Defines the type of resource being created
+metadata: # Metadata for the Deployment
+  name: flask-app # Unique name of the Deployment
+  labels: # Labels used to identify and organize the Deployment
+    app: flask-app # Custom label: app=flask-app
+spec: # Specification of the desired state for the Deployment
+  replicas: 2 # Number of desired pod instances to run
+  selector: # Defines how the Deployment finds which pods to manage
+    matchLabels: # Labels that pods must have to be managed by this Deployment
+      app: flask-app # Must match the pod template label
+  template: # Template for the pods that will be created
+    metadata: # Metadata for the pods created from this template
+      labels: # Labels applied to each pod created
+        app: flask-app # Label used by the selector and service
+    spec: # Specification for the pod's containers and volumes
+      automountServiceAccountToken: false # Security: Don't mount default token
+      containers: # List of containers to run in the pod
+      - name: flask-app # Name of the container
+        image: devops-lab-app:1.0.0 # Use specific version tag
+        ports: # List of ports to expose
+        - containerPort: 5000 # Port the container is listening on (Flask)
+        env: # List of environment variables
+        - name: REDIS_HOST # Name for Redis host
+          value: "redis-service" # Internal cluster DNS for Redis
+        - name: REDIS_PORT # Name for Redis port
+          value: "6379" # Standard Redis port
+        resources: # Resource limits and requests
+          limits: # Maximum resources
+            cpu: "500m" # Max CPU: 0.5 cores
+            memory: "256Mi" # Max Memory: 256MB
+          requests: # Guaranteed resources
+            cpu: "250m" # Requested CPU: 0.25 cores
+            memory: "128Mi" # Requested Memory: 128MB
+            ephemeral-storage: "1Gi" # Local storage for logs
+        livenessProbe: # Check if container is alive
+          httpGet: # HTTP GET check
+            path: /health # New health endpoint
+            port: 5000 # App port
+          initialDelaySeconds: 10 # Start-up delay
+          periodSeconds: 15 # Interval between checks
+        readinessProbe: # Check if container is ready for traffic
+          httpGet: # HTTP GET check
+            path: /health # New health endpoint
+            port: 5000 # App port
+          initialDelaySeconds: 5 # Start-up delay
+          periodSeconds: 10 # Interval between checks

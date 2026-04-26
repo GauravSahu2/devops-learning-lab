@@ -4,53 +4,30 @@
 # 2. redis-service: Provides an internal cluster IP/DNS for the Redis database.
 
 # Service for the Flask App (Exposed externally)
-# API version for the Service resource
-apiVersion: v1
-# Defines the resource as a Service
-kind: Service
-# Metadata for the Service
-metadata:
-  # Name used to access this service within the cluster
-  name: flask-service
-# Specification for the Service
-spec:
-  # Exposes the service externally using a cloud provider's load balancer
-  type: LoadBalancer
-  # Matches pods with these labels
-  selector:
-    # Routes traffic to pods with label app=flask-app
-    app: flask-app
-  # Port configuration
-  ports:
-    # Network protocol used
-    - protocol: TCP
-      # Port exposed by the Service (external)
-      port: 80
-      # Port on the container to forward traffic to
-      targetPort: 5000
+apiVersion: v1 # API version for the Service resource
+kind: Service # Defines the resource as a Service
+metadata: # Metadata for the Service
+  name: flask-service # Name used to access this service within the cluster
+spec: # Specification for the Service
+  type: LoadBalancer # Expose externally via cloud LoadBalancer
+  selector: # Matches pods with these labels
+    app: flask-app # Routes traffic to pods with label app=flask-app
+  ports: # Port configuration
+    - protocol: TCP # Network protocol
+      port: 80 # Service port (external)
+      targetPort: 5000 # Container port (app)
 
 ---
 # Service for Redis (Internal only)
-# API version for the Service resource
-apiVersion: v1
-# Defines the resource as a Service
-kind: Service
-# Metadata for the Service
-metadata:
-  # DNS name for internal cluster communication (used by flask-app)
-  name: redis-service
-# Specification for the Service
-spec:
-  # Matches pods with these labels
-  selector:
-    # Routes traffic to pods with label app=redis
-    app: redis
-  # Port configuration
-  ports:
-    # Network protocol used
-    - protocol: TCP
-      # Port exposed by the Service (external)
-      port: 6379
-      # Port on the Redis container
-      targetPort: 6379
+apiVersion: v1 # API version for the Service resource
+kind: Service # Defines the resource as a Service
+metadata: # Metadata for the Service
+  name: redis-service # Internal cluster DNS for Redis
+spec: # Specification for the Service
+  selector: # Matches pods with these labels
+    app: redis # Routes traffic to pods with label app=redis
+  ports: # Port configuration
+    - protocol: TCP # Network protocol
+      port: 6379 # Service port (internal)
+      targetPort: 6379 # Redis container port
 

@@ -2,57 +2,34 @@
 # This Deployment file manages the Redis instance for the application.
 # It runs a single instance of Redis using a lightweight Alpine image.
 
-# Specifies the API version for the Deployment resource
-apiVersion: apps/v1
-# Defines the type of resource being created
-kind: Deployment
-# Metadata for the Deployment
-metadata:
-  # Unique name of the Redis Deployment
-  name: redis
-  # Labels for identifying the deployment
-  labels:
-    # Custom label: app=redis
-    app: redis
-# Specification of the desired state
-spec:
-  # Only 1 replica for Redis (standard for non-HA setups)
-  replicas: 1
-  # Defines how the Deployment finds which pods to manage
-  selector:
-    # Labels that pods must have to be managed by this Deployment
-    matchLabels:
-      # Must match the pod template label
-      app: redis
-  # Template for the Redis pod
-  template:
-    # Metadata for the Redis pod
-    metadata:
-      # Labels applied to the Redis pod
-      labels:
-        # Label used by the selector and service
-        app: redis
-    # Specification for the Redis container
-    spec:
-      # Security: Don't automatically mount the default service account token
-      automountServiceAccountToken: false
-      # List of containers in the pod
-      containers:
-      - name: redis
-        # Lightweight Alpine-based Redis image
-        image: redis:alpine
-        # Resource requests and limits for stability
-        resources:
+apiVersion: apps/v1 # Specifies the API version for the Deployment resource
+kind: Deployment # Defines the type of resource being created
+metadata: # Metadata for the Deployment
+  name: redis # Unique name of the Redis Deployment
+  labels: # Labels for identifying the deployment
+    app: redis # Custom label: app=redis
+spec: # Specification of the desired state
+  replicas: 1 # Only 1 replica for Redis (standard for non-HA setups)
+  selector: # Defines how the Deployment finds which pods to manage
+    matchLabels: # Labels that pods must have to be managed by this Deployment
+      app: redis # Must match the pod template label
+  template: # Template for the Redis pod
+    metadata: # Metadata for the Redis pod
+      labels: # Labels applied to the Redis pod
+        app: redis # Label used by the selector and service
+    spec: # Specification for the Redis container
+      automountServiceAccountToken: false # Security: Don't mount default token
+      containers: # List of containers in the pod
+      - name: redis # Name of the container
+        image: redis:alpine # Lightweight Alpine-based Redis image
+        resources: # Resource requests and limits for stability
           limits:
             cpu: "100m"
             memory: "128Mi"
           requests:
             cpu: "50m"
             memory: "64Mi"
-            # Requested ephemeral storage for logs/scratch space
-            ephemeral-storage: "1Gi"
-        # Ports to expose
-        ports:
-        # Standard Redis port
-        - containerPort: 6379
+            ephemeral-storage: "1Gi" # Local storage for logs
+        ports: # Ports to expose
+        - containerPort: 6379 # Standard Redis port
 
