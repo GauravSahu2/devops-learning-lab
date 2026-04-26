@@ -76,8 +76,8 @@ spec:
         livenessProbe:
           # Performs an HTTP GET request
           httpGet:
-            # Path to check
-            path: /
+            # Path to the new health endpoint
+            path: /health
             # Port to check
             port: 5000
           # Wait 10 seconds before starting probes
@@ -88,8 +88,8 @@ spec:
         readinessProbe:
           # Performs an HTTP GET request
           httpGet:
-            # Path to check
-            path: /
+            # Path to the new health endpoint
+            path: /health
             # Port to check
             port: 5000
           # Wait 5 seconds before starting probes

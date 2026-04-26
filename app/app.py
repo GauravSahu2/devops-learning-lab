@@ -142,6 +142,14 @@ def index():
     </html>
     """
 
+# Define a health check route (URL: /health)
+# This is used by Kubernetes and Docker to see if the app is 'alive'
+@app.route("/health", methods=["GET"])
+# Function that returns a simple status message
+def health_check():
+    # Return a JSON-like message and a 200 OK status code
+    return {"status": "healthy"}, 200
+
 # Check if the script is being run directly (not imported)
 if __name__ == "__main__":
     # Determine the host and port for the server to listen on

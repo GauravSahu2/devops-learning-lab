@@ -4,66 +4,69 @@
 # packages the app with a non-root user for security hardening.
 
 # --- Stage 1: Build ---
-# Use a lightweight Python base image for building
+# Use a lightweight Python 3.11 image as the starting point for building
 FROM python:3.11-slim AS builder
 
-# Set the working directory for the build stage
+# Create and enter a directory named '/build' inside the container
 WORKDIR /build
 
-# Install dependencies to a local folder
-# Upgrade pip and build tools to avoid known vulnerabilities
+# Install essential Python build tools
+# Upgrade pip, setuptools, and wheel to the latest versions to fix security bugs
 # hadolint ignore=DL3013
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-# Copy requirements file first to leverage Docker cache
+
+# Copy the dependency list from your local computer into the container
 COPY app/requirements.txt .
-# Install dependencies into /install folder
+
+# Install the application's libraries into a specific folder named '/install'
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Stage 2: Production ---
-# Start a fresh, clean stage to keep the final image small
+# Start again from a clean, small Python image for the final product
 FROM python:3.11-slim
 
-# Fix system-level vulnerabilities by upgrading base tools immediately
+# Fix security vulnerabilities in the base image's pre-installed tools
+# This ensures that even the system tools are up-to-date and secure
 # hadolint ignore=DL3013
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install curl for the healthcheck and create a non-root user
+# Update the system's package list and install 'curl' for health checks
+# Also create a new user named 'devopsuser' so we don't run as root (Admin)
 # hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl && \
     useradd -m devopsuser && \
     rm -rf /var/lib/apt/lists/*
 
-# Set the working directory for the final application
+# Create and enter the '/app' directory where the code will live
 WORKDIR /app
 
-# Copy only the installed dependencies from the builder stage
-# Transfer the binaries/libraries from the builder stage
+# Take the installed libraries from the 'builder' stage and move them here
+# This keeps the final image small because it doesn't contain build tools
 COPY --from=builder /install /usr/local
 
-# Copy the application code
-# Copy the Flask app code into the container
+# Copy your actual Flask application code into the current directory (/app)
 COPY app/ .
 
-# Change ownership to the non-root user
-# Ensure the app files are owned by the non-root user
+# Change the ownership of the /app folder to the 'devopsuser' we created
+# This is a security best practice to limit file permissions
 RUN chown -R devopsuser:devopsuser /app
 
-# Switch to the non-root user
-# Tell Docker to run all subsequent commands as 'devopsuser'
+# Switch the container's execution context to the 'devopsuser'
+# All following commands and the app itself will run with limited privileges
 USER devopsuser
 
-# Expose the application port
-# Inform Docker that the container listens on port 5000
+# Document that this container is designed to listen on network port 5000
 EXPOSE 5000
 
-# Healthcheck to ensure the container is running correctly
-# Check if the app is responding every 30 seconds
+# Set up an automatic health check that runs every 30 seconds
+# It uses 'curl' to see if the web server is actually responding
+# We use the new /health endpoint to avoid incrementing the visit counter
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:5000/ || exit 1
+  CMD curl -f http://localhost:5000/health || exit 1
 
-# Run the application
-# Command to start the application
+# Specify the command to start your Flask application
+# This is the 'entrypoint' that runs when the container starts up
 CMD ["python", "app.py"]
 
 
