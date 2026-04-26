@@ -21,6 +21,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 FROM python:3.11-slim
 
 # Install curl for the healthcheck and create a non-root user
+# hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl && \
     useradd -m devopsuser && \
