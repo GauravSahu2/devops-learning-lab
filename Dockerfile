@@ -4,46 +4,61 @@
 # packages the app with a non-root user for security hardening.
 
 # --- Stage 1: Build ---
-FROM python:3.11-slim AS builder # Use lightweight base image for building
+# Use lightweight base image for building
+FROM python:3.11-slim AS builder
 
-WORKDIR /build # Set working directory for build stage
+# Set working directory for build stage
+WORKDIR /build
 
+# Upgrade build tools to fix security vulnerabilities
 # hadolint ignore=DL3013
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel # Upgrade build tools
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-COPY app/requirements.txt . # Copy requirements first for caching
+# Copy requirements first for caching
+COPY app/requirements.txt .
 
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt # Install deps
+# Install dependencies
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Stage 2: Production ---
-FROM python:3.11-slim # Start fresh for final production image
+# Start fresh for final production image
+FROM python:3.11-slim
 
+# Fix system vulnerabilities by upgrading base tools
 # hadolint ignore=DL3013
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel # Fix system vulnerabilities
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
+# Install curl and create non-root user
 # hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl && \
     useradd -m devopsuser && \
-    rm -rf /var/lib/apt/lists/* # Install curl and create non-root user
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app # Set production working directory
+# Set production working directory
+WORKDIR /app
 
-COPY --from=builder /install /usr/local # Transfer dependencies from builder
+# Transfer dependencies from builder
+COPY --from=builder /install /usr/local
 
-COPY app/ . # Copy application code
+# Copy application code
+COPY app/ .
 
-RUN chown -R devopsuser:devopsuser /app # Ensure non-root ownership
+# Ensure non-root ownership
+RUN chown -R devopsuser:devopsuser /app
 
-USER devopsuser # Switch to non-root security context
+# Switch to non-root security context
+USER devopsuser
 
-EXPOSE 5000 # Document application port
+# Document application port
+EXPOSE 5000
 
 # Healthcheck using dedicated /health endpoint
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:5000/health || exit 1
 
-CMD ["python", "app.py"] # Command to start the application
+# Command to start the application
+CMD ["python", "app.py"]
 
 
 
