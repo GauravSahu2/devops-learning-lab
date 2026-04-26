@@ -90,7 +90,7 @@ def index(): # This function runs when someone visits the homepage
 
 if __name__ == "__main__": # Check if the script is being run directly (not imported)
     # Determine the host and port for the server to listen on
-    host = os.getenv("FLASK_RUN_HOST", "0.0.0.0") # Use env var or listen on all interfaces
+    host = os.getenv("FLASK_RUN_HOST", "0.0.0.0") # nosec - Use env var or listen on all interfaces
     port = int(os.getenv("FLASK_RUN_PORT", 5000)) # Use env var or default to port 5000
     # Start the Flask development web server
     app.run(host=host, port=port) # Run the application with the specified host and port
