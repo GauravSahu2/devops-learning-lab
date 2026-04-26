@@ -11,7 +11,9 @@ FROM python:3.11-slim AS builder
 WORKDIR /build
 
 # Install dependencies to a local folder
-# Copy the list of dependencies
+# Upgrade pip and build tools to avoid known vulnerabilities
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+# Copy requirements file first to leverage Docker cache
 COPY app/requirements.txt .
 # Install dependencies into /install folder
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
