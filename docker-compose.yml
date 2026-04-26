@@ -1,0 +1,54 @@
+# FILE SUMMARY:
+# This Docker Compose file orchestrates the local deployment of the DevOps Lab.
+# It defines two services: 
+# 1. 'web': The Flask application (built from the local Dockerfile).
+# 2. 'redis': The database for tracking visits.
+# It also configures a private bridge network for secure service-to-service communication.
+
+services:
+  web: # The Flask application service
+    build: . # Build the image using the Dockerfile in the current directory
+    image: devops-lab-app:1.0.0 # Explicitly name and tag the built image
+    ports:
+      - "5000:5000" # Map container port 5000 to host port 5000
+    environment: # Pass environment variables for database connection
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    deploy: # Resource management (useful for Docker Desktop/Swarm)
+      resources:
+        limits: # Upper bound for CPU and Memory
+          cpus: '0.5'
+          memory: 256M
+        reservations: # Minimum guaranteed resources
+          cpus: '0.25'
+          memory: 128M
+    healthcheck: # Ensure the app is responsive before marking as healthy
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on: # Wait for redis to be healthy before starting the web app
+      redis:
+        condition: service_healthy
+    networks:
+      - lab-network
+
+  redis: # The Redis database service
+    image: "redis:alpine" # Use a lightweight, stable Redis image
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+    healthcheck: # Ensure Redis is ready to accept connections
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lab-network
+
+networks:
+  lab-network: # Custom bridge network for isolated service communication
+    driver: bridge
+

@@ -1,0 +1,53 @@
+# FILE SUMMARY:
+# This Deployment file defines the desired state for the Flask application.
+# It ensures 2 replicas are running, sets resource limits for stability,
+# and configures liveness/readiness probes for self-healing.
+
+apiVersion: apps/v1 # Specifies the API version for the Deployment resource
+kind: Deployment # Defines the type of resource being created
+metadata: # Metadata for the Deployment
+  name: flask-app # Unique name of the Deployment
+  labels: # Labels used to identify and organize the Deployment
+    app: flask-app # Custom label: app=flask-app
+spec: # Specification of the desired state for the Deployment
+  replicas: 2 # Number of desired pod instances to run
+  selector: # Defines how the Deployment finds which pods to manage
+    matchLabels: # Labels that pods must have to be managed by this Deployment
+      app: flask-app # Must match the pod template label
+  template: # Template for the pods that will be created
+    metadata: # Metadata for the pods created from this template
+      labels: # Labels applied to each pod created
+        app: flask-app # Label used by the selector and service
+    spec: # Specification for the pod's containers and volumes
+      automountServiceAccountToken: false # Security: Don't automatically mount the default service account token
+      containers: # List of containers to run in the pod
+      - name: flask-app # Name of the container
+        image: devops-lab-app:1.0.0 # Use a specific version tag instead of 'latest' for predictability
+        ports: # List of ports to expose from the container
+        - containerPort: 5000 # Port the container is listening on (Flask default)
+        env: # List of environment variables to set in the container
+        - name: REDIS_HOST # Environment variable name for Redis host
+          value: "redis-service" # Value pointing to the Redis Kubernetes Service
+        - name: REDIS_PORT # Environment variable name for Redis port
+          value: "6379" # Port number for Redis
+        resources: # Resource requests and limits for the container
+          limits: # Maximum amount of resources the container can use
+            cpu: "500m" # Max CPU: 0.5 cores
+            memory: "256Mi" # Max Memory: 256 Megabytes
+          requests: # Minimum amount of resources guaranteed to the container
+            cpu: "250m" # Requested CPU: 0.25 cores
+            memory: "128Mi" # Requested Memory: 128 Megabytes
+            ephemeral-storage: "1Gi" # Requested ephemeral storage for logs/scratch space
+        livenessProbe: # Probe to check if the container is still running
+          httpGet: # Performs an HTTP GET request
+            path: / # Path to check
+            port: 5000 # Port to check
+          initialDelaySeconds: 10 # Wait 10 seconds before starting probes
+          periodSeconds: 15 # Check every 15 seconds
+        readinessProbe: # Probe to check if the container is ready to serve traffic
+          httpGet: # Performs an HTTP GET request
+            path: / # Path to check
+            port: 5000 # Port to check
+          initialDelaySeconds: 5 # Wait 5 seconds before starting probes
+          periodSeconds: 10 # Check every 10 seconds
+

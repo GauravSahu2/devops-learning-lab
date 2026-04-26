@@ -1,0 +1,35 @@
+# FILE SUMMARY:
+# This Deployment file manages the Redis instance for the application.
+# It runs a single instance of Redis using a lightweight Alpine image.
+
+apiVersion: apps/v1 # Specifies the API version for the Deployment resource
+kind: Deployment # Defines the type of resource being created
+metadata: # Metadata for the Deployment
+  name: redis # Unique name of the Redis Deployment
+  labels: # Labels for identifying the deployment
+    app: redis # Custom label: app=redis
+spec: # Specification of the desired state
+  replicas: 1 # Only 1 replica for Redis (standard for non-HA setups)
+  selector: # Defines how the Deployment finds which pods to manage
+    matchLabels: # Labels that pods must have to be managed by this Deployment
+      app: redis # Must match the pod template label
+  template: # Template for the Redis pod
+    metadata: # Metadata for the Redis pod
+      labels: # Labels applied to the Redis pod
+        app: redis # Label used by the selector and service
+    spec: # Specification for the Redis container
+      automountServiceAccountToken: false # Security: Don't automatically mount the default service account token
+      containers: # List of containers in the pod
+      - name: redis # Name of the container
+        image: redis:alpine # Lightweight Alpine-based Redis image
+        resources: # Resource requests and limits for stability
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+            ephemeral-storage: "1Gi"
+        ports: # Ports to expose
+        - containerPort: 6379 # Standard Redis port
+

@@ -1,0 +1,40 @@
+# FILE SUMMARY:
+# The .dockerignore file ensures that unnecessary or sensitive files are NOT 
+# copied into the Docker image during the build process. 
+# This keeps the image small, secure, and prevents unexpected behavior.
+
+# --- Version Control ---
+# Exclude Git history to keep the image lightweight
+.git
+.gitignore
+
+# --- Python Environment ---
+# Exclude local caches and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# --- Build & Orchestration Assets ---
+# These files are used to build or deploy the container, 
+# but are not needed INSIDE the running container.
+Dockerfile
+docker-compose.yml
+.dockerignore
+BUILD_DEPLOY_PLAN.md
+
+# --- IDE Settings ---
+# Prevent local editor configurations from bloating the image
+.vscode/
+.idea/
+
+# --- Documentation & CI/CD ---
+# Exclude manifests and docs that are not part of the runtime app
+docs/
+k8s/
+.github/
+README.md
+LAB_STATUS.md

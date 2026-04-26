@@ -1,0 +1,33 @@
+# FILE SUMMARY:
+# This file defines the Kubernetes Services for the project.
+# 1. flask-service: Exposes the web app externally via a LoadBalancer.
+# 2. redis-service: Provides an internal cluster IP/DNS for the Redis database.
+
+# Service for the Flask App (Exposed externally)
+apiVersion: v1 # API version for the Service resource
+kind: Service # Defines the resource as a Service
+metadata: # Metadata for the Service
+  name: flask-service # Name used to access this service within the cluster
+spec: # Specification for the Service
+  type: LoadBalancer # Exposes the service externally using a cloud provider's load balancer
+  selector: # Matches pods with these labels
+    app: flask-app # Routes traffic to pods with label app=flask-app
+  ports: # Port configuration
+    - protocol: TCP # Network protocol used
+      port: 80 # Port exposed by the Service (external)
+      targetPort: 5000 # Port on the container to forward traffic to
+
+---
+# Service for Redis (Internal only)
+apiVersion: v1 # API version for the Service resource
+kind: Service # Defines the resource as a Service
+metadata: # Metadata for the Service
+  name: redis-service # DNS name for internal cluster communication (used by flask-app)
+spec: # Specification for the Service
+  selector: # Matches pods with these labels
+    app: redis # Routes traffic to pods with label app=redis
+  ports: # Port configuration
+    - protocol: TCP # Network protocol used
+      port: 6379 # Port exposed by the Service (internal)
+      targetPort: 6379 # Port on the Redis container
+
