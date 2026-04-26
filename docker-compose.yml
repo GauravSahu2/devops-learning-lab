@@ -6,41 +6,54 @@
 # It also configures a private bridge network for secure service-to-service communication.
 
 services:
-  web: # The Flask application service
-    build: . # Build the image using the Dockerfile in the current directory
-    image: devops-lab-app:1.0.0 # Explicitly name and tag the built image
+  # The Flask application service
+  web:
+    # Build the image using the Dockerfile in the current directory
+    build: .
+    # Explicitly name and tag the built image
+    image: devops-lab-app:1.0.0
     ports:
-      - "5000:5000" # Map container port 5000 to host port 5000
-    environment: # Pass environment variables for database connection
+      # Map container port 5000 to host port 5000
+      - "5000:5000"
+    # Pass environment variables for database connection
+    environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-    deploy: # Resource management (useful for Docker Desktop/Swarm)
+    # Resource management (useful for Docker Desktop/Swarm)
+    deploy:
       resources:
-        limits: # Upper bound for CPU and Memory
+        # Upper bound for CPU and Memory
+        limits:
           cpus: '0.5'
           memory: 256M
-        reservations: # Minimum guaranteed resources
+        # Minimum guaranteed resources
+        reservations:
           cpus: '0.25'
           memory: 128M
-    healthcheck: # Ensure the app is responsive before marking as healthy
+    # Ensure the app is responsive before marking as healthy
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 30s
       timeout: 10s
       retries: 3
-    depends_on: # Wait for redis to be healthy before starting the web app
+    # Wait for redis to be healthy before starting the web app
+    depends_on:
       redis:
         condition: service_healthy
     networks:
       - lab-network
 
-  redis: # The Redis database service
-    image: "redis:alpine" # Use a lightweight, stable Redis image
+  # The Redis database service
+  redis:
+    # Use a lightweight, stable Redis image
+    image: "redis:alpine"
     deploy:
       resources:
         limits:
           cpus: '0.1'
           memory: 128M
-    healthcheck: # Ensure Redis is ready to accept connections
+    # Ensure Redis is ready to accept connections
+    healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
@@ -49,6 +62,7 @@ services:
       - lab-network
 
 networks:
-  lab-network: # Custom bridge network for isolated service communication
+  # Custom bridge network for isolated service communication
+  lab-network:
     driver: bridge
 

@@ -180,26 +180,39 @@ In a real-world project, you don't build and deploy manually every time. We use 
 The workflow is divided into three sequential "Jobs". Each job must pass before the next one starts:
 
 1. **Job 1: Security & Linting** (`security-and-lint`)
-   - **Bandit**: Scans your Python code for security flaws.
-   - **Hadolint**: Checks your Dockerfile for best practices.
-   - **Gitleaks**: Scans your code to ensure you haven't accidentally committed secrets (passwords/keys).
+   - **Bandit**: Scans your Python code for security flaws (SAST).
+   - **Hadolint**: Checks your Dockerfile for production best practices.
+   - **Gitleaks**: Ensures no secrets (passwords/keys) are committed.
 
 2. **Job 2: Build & Vulnerability Scan** (`build-and-scan`)
    - **Docker Build**: Builds the image automatically in the cloud.
    - **Trivy Scan**: Scans the actual Docker image for "CVEs" (known security vulnerabilities in the OS or libraries).
-   - **Versioning**: Instead of using `1.0.0`, the automation uses the **Commit SHA** (e.g., `devops-lab-app:a1b2c3d`) so every single change has a unique, traceable version.
+   - **Versioning**: Uses the **Commit SHA** (e.g., `devops-lab-app:a1b2c3d`) for unique, traceable versions.
 
 3. **Job 3: Simulated Deployment** (`deploy-mock`)
    - If all tests and scans pass, it simulates a `kubectl apply` to your Kubernetes cluster.
+
+### 🛡️ Real-World Case Study: "The Security Gauntlet"
+
+During the development of this lab, we encountered and fixed three real-world security blockers that the pipeline caught:
+
+| Tool | Finding | The Fix (Hardening) |
+| :--- | :--- | :--- |
+| **Bandit** | `B104`: Hardcoded bind to all interfaces (`0.0.0.0`) | Added `# nosec` to acknowledge intentional binding for container access. |
+| **Hadolint** | `DL3013`: Pin versions in pip | Added `# hadolint ignore=DL3013` because we specifically want the **latest** build tools to pull in security patches. |
+| **Trivy** | `HIGH` Vulnerability in `wheel` & `setuptools` | Added `RUN pip install --upgrade pip setuptools wheel` to **both** stages of the Dockerfile to overwrite vulnerable system libraries. |
 
 ### How to trigger it
 
 Simply commit your code and push it to GitHub:
 
 ```powershell
+# Stage all changes
 git add .
-git commit -m "Update application with comments"
-git push origin main
+# Commit with a descriptive message
+git commit -m "Security: hardening build tools to pass Trivy scans"
+# Push to the master branch
+git push origin master
 ```
 
 *You can then see the progress under the **"Actions"** tab on your GitHub repository page.*

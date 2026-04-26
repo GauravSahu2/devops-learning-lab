@@ -58,16 +58,26 @@ Access the app via the `flask-service` external IP (or `minikube service flask-s
 
 ---
 
+---
+
 ## 🛡️ Security Tools Used
 
-- **Bandit**: Scans Python code for security issues.
-- **Hadolint**: Lints Dockerfile for best practices.
-- **Trivy**: Scans container images for vulnerabilities.
+- **Bandit**: Scans Python code for security issues (SAST).
+- **Hadolint**: Lints Dockerfile for production best practices.
+- **Trivy**: Scans container images for vulnerabilities (SCA).
 - **Gitleaks**: Detects hardcoded secrets in the repo.
+
+### 🛡️ DevSecOps in Action (Real Fixes)
+
+This lab includes real-world hardening examples implemented to pass the CI/CD security gates:
+1. **Bandit Bypass**: Used `# nosec` for intentional `0.0.0.0` binding required by Docker.
+2. **Hadolint Hardening**: Ignored `DL3008` & `DL3013` to allow upgrading build tools for security patches.
+3. **Trivy Vulnerability Fix**: Upgraded `pip`, `setuptools`, and `wheel` in **both** build stages to resolve `HIGH` severity vulnerabilities found in the base Python image.
 
 ---
 
 ## 📚 Learning Resources
 
-- Check [docs/explanation.md](docs/explanation.md) for a line-by-line breakdown of every file!
-- Follow the [CI/CD pipeline](.github/workflows/main.yml) to see how automation works.
+- Check **[BUILD_DEPLOY_PLAN.md](BUILD_DEPLOY_PLAN.md)** for a step-by-step project lifecycle guide.
+- Check **[docs/explanation.md](docs/explanation.md)** for a line-by-line breakdown of every file!
+- Follow the **[CI/CD pipeline](.github/workflows/main.yml)** to see how automation works.
