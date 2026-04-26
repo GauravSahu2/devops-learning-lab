@@ -146,7 +146,7 @@ def index():
 if __name__ == "__main__":
     # Determine the host and port for the server to listen on
     # nosec - Use env var or listen on all interfaces
-    host = os.getenv("FLASK_RUN_HOST", "0.0.0.0")
+    host = os.getenv("FLASK_RUN_HOST", "0.0.0.0") # nosec
     # Use env var or default to port 5000
     port = int(os.getenv("FLASK_RUN_PORT", 5000))
     # Start the Flask development web server
