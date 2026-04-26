@@ -12,6 +12,7 @@ WORKDIR /build
 
 # Install dependencies to a local folder
 # Upgrade pip and build tools to avoid known vulnerabilities
+# hadolint ignore=DL3013
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 # Copy requirements file first to leverage Docker cache
 COPY app/requirements.txt .
