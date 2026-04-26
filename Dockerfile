@@ -23,6 +23,10 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # Start a fresh, clean stage to keep the final image small
 FROM python:3.11-slim
 
+# Fix system-level vulnerabilities by upgrading base tools immediately
+# hadolint ignore=DL3013
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
 # Install curl for the healthcheck and create a non-root user
 # hadolint ignore=DL3008
 RUN apt-get update && \
